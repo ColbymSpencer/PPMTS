@@ -15,30 +15,25 @@ library(readr)
 item <- read_csv("Items_Export_Cleaned_2024.csv")
 subtype <- read_csv("Items_SubTypes_Export_2024.csv")
 type <- read_csv("Items_Types_Export_2024.csv")
-```
-```{r clean}
-
+# test if field used as a primary key is a unique identifier
+is_key <- function(df, field){
+  df |>
+    count({{field}}) |>
+    filter(n>1) |>
+    nrow() == 0
+}
 ```
 
 ```{r validate}
-# are fields used as keys unique identifiers
-type |>
-  count(ITEM_TYPE_KEY) |>
-  filter (n>1)
-
-subtype |>
-  count(ITMTP_ITEM_TYPE_KEY) |>
-  arrange(desc(n))
-
-item |>
-  count(ITMSB_ITEM_SUB_TYPE_KEY) |>
-  filter (n>1)
+# test if field used as a primary key is a unique identifier
+is_key(type, ITEM_TYPE_KEY)
+is_key(subtype, ITEM_SUB_TYPE_KEY)
 ```
 
 ```{r join tables}
 item |>
-  left_join(subtype, join_by(ITMSB_ITEM_SUB_TYPE_KEY == ITMTP_ITEM_TYPE_KEY), suffix = c('_item','_subitem')) |>
-  left_join(type, join_by(ITMSB_ITEM_SUB_TYPE_KEY == ITEM_TYPE_KEY), suffix = c('_','_type')) |>
+  left_join(subtype, join_by(ITMSB_ITEM_SUB_TYPE_KEY == ITEM_SUB_TYPE_KEY), suffix = c('_item','_subitem')) |>
+  left_join(type, join_by(ITMTP_ITEM_TYPE_KEY == ITEM_TYPE_KEY), suffix = c('_','_type')) |>
   # some fields have duplicated names
   write_excel_csv('J://OPP//PPMTS//GIS//ItemTable.csv')
 ```
